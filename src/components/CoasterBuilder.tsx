@@ -47,11 +47,51 @@ function interpolate(points: Point[], resolution = 200): Point[] {
   return curve;
 }
 
+const PIXELS_TO_METERS = 0.5;
+const GRAVITY = 9.81;
+
 function speedAtPoint(startY: number, currentY: number): number {
-  const h = Math.max(0, startY - currentY); // pixel height diff
-  const scale = 0.5; // pixels to meters (rough)
-  const v = Math.sqrt(2 * 9.81 * h * scale);
+  const h = Math.max(0, startY - currentY) * PIXELS_TO_METERS;
+  const v = Math.sqrt(2 * GRAVITY * h);
   return v * 2.237; // m/s to mph
+}
+
+function speedAtPointMs(startY: number, currentY: number): number {
+  const h = Math.max(0, startY - currentY) * PIXELS_TO_METERS;
+  return Math.sqrt(2 * GRAVITY * h);
+}
+
+// Calculate radius of curvature using numerical derivatives
+function radiusOfCurvature(points: Point[], i: number): number {
+  if (i <= 0 || i >= points.length - 1) return Infinity;
+
+  const prev = points[i - 1];
+  const curr = points[i];
+  const next = points[i + 1];
+
+  // First derivatives (central difference)
+  const dx = (next.x - prev.x) / 2;
+  const dy = (next.y - prev.y) / 2;
+
+  // Second derivatives
+  const ddx = next.x - 2 * curr.x + prev.x;
+  const ddy = next.y - 2 * curr.y + prev.y;
+
+  // Curvature = |x'y'' - y'x''| / (x'^2 + y'^2)^(3/2)
+  const numerator = Math.abs(dx * ddy - dy * ddx);
+  const denominator = Math.pow(dx * dx + dy * dy, 1.5);
+
+  if (numerator < 0.0001) return Infinity; // Nearly straight
+
+  const curvature = numerator / denominator;
+  return (1 / curvature) * PIXELS_TO_METERS; // radius in meters
+}
+
+// Calculate G-force from centripetal acceleration
+function gForceAtPoint(speed: number, radius: number): number {
+  if (radius === Infinity || radius === 0) return 0;
+  const centripetalAccel = (speed * speed) / radius;
+  return centripetalAccel / GRAVITY;
 }
 
 export default function CoasterBuilder() {
@@ -63,6 +103,8 @@ export default function CoasterBuilder() {
   const [carIndex, setCarIndex] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [stats, setStats] = useState({ maxSpeed: 0, maxHeight: 0, maxG: 0 });
+  const [showExplainer, setShowExplainer] = useState(false);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
   const animRef = useRef<number>(0);
 
   const canvasWidth = 850;
@@ -171,6 +213,7 @@ export default function CoasterBuilder() {
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
     setPoints((prev) => [...prev, { x, y }]);
+    setActivePreset(null); // User is now drawing custom
   };
 
   // Launch animation
@@ -180,19 +223,20 @@ export default function CoasterBuilder() {
     setCarIndex(0);
     if (kidMode) setShowConfetti(true);
 
-    // Compute stats
+    // Compute stats using proper physics
     const startY = curvePoints[0].y;
     let maxSpd = 0, maxH = 0, maxG = 0;
     for (let i = 1; i < curvePoints.length; i++) {
       const s = speedAtPoint(startY, curvePoints[i].y);
-      const h = (startY - curvePoints[i].y) * 0.5 * 3.28; // meters to feet
+      const h = (startY - curvePoints[i].y) * PIXELS_TO_METERS * 3.28; // to feet
       if (s > maxSpd) maxSpd = s;
       if (h > maxH) maxH = h;
-      // G-force estimation from curvature
+
+      // G-force from centripetal acceleration: a = v²/r
       if (i > 0 && i < curvePoints.length - 1) {
-        const dy1 = curvePoints[i].y - curvePoints[i - 1].y;
-        const dy2 = curvePoints[i + 1]?.y ? curvePoints[i + 1].y - curvePoints[i].y : dy1;
-        const g = Math.abs(dy2 - dy1) * 0.05;
+        const speedMs = speedAtPointMs(startY, curvePoints[i].y);
+        const radius = radiusOfCurvature(curvePoints, i);
+        const g = gForceAtPoint(speedMs, radius);
         if (g > maxG) maxG = g;
       }
     }
@@ -214,9 +258,9 @@ export default function CoasterBuilder() {
 
   const handleSave = async () => {
     if (points.length < 2) return;
-    const name = prompt("Name your coaster:") || "My Coaster";
-    await saveDesign({ user_id: getUserId(), name, points });
-    alert("Design saved!");
+    const name = prompt(kidMode ? "Name your coaster!" : "Name your coaster:") || "My Coaster";
+    await saveDesign({ user_id: getUserId(kidMode), name, points });
+    alert(kidMode ? "🎢 Coaster saved!" : "Design saved!");
   };
 
   return (
@@ -233,14 +277,18 @@ export default function CoasterBuilder() {
         {Object.keys(PRESETS).map((name) => (
           <button
             key={name}
-            onClick={() => { setPoints(PRESETS[name]); setAnimating(false); }}
-            className="px-4 py-2 rounded-lg bg-purple-900/50 border border-purple-500/30 text-purple-200 text-sm hover:bg-purple-800/50 transition-colors"
+            onClick={() => { setPoints(PRESETS[name]); setAnimating(false); setActivePreset(name); }}
+            className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+              activePreset === name
+                ? "bg-purple-600 border border-purple-400 text-white"
+                : "bg-purple-900/50 border border-purple-500/30 text-purple-200 hover:bg-purple-800/50"
+            }`}
           >
             {name}
           </button>
         ))}
         <button
-          onClick={() => { setPoints([]); setAnimating(false); setStats({ maxSpeed: 0, maxHeight: 0, maxG: 0 }); }}
+          onClick={() => { setPoints([]); setAnimating(false); setStats({ maxSpeed: 0, maxHeight: 0, maxG: 0 }); setActivePreset(null); }}
           className="px-4 py-2 rounded-lg bg-red-900/30 border border-red-500/30 text-red-300 text-sm hover:bg-red-800/30 transition-colors"
         >
           Clear
@@ -288,23 +336,98 @@ export default function CoasterBuilder() {
           disabled={points.length < 2}
           className="px-6 py-3 rounded-xl bg-gray-800 border border-purple-500/30 text-purple-200 font-medium hover:bg-gray-700 disabled:opacity-40 transition-colors"
         >
-          Save Design
+          {kidMode ? "💾 Save!" : "Save Design"}
         </button>
       </div>
 
       {/* Physics panel */}
       {(stats.maxSpeed > 0 || points.length > 1) && (
         <div className="mt-6 grid grid-cols-3 gap-4 max-w-md mx-auto">
-          {[
-            { label: kidMode ? "SPEED" : "Max Speed", value: kidMode ? (stats.maxSpeed > 50 ? "SUPER FAST! 🔥" : "Zippy! 💨") : `${stats.maxSpeed} mph` },
-            { label: kidMode ? "HEIGHT" : "Max Height", value: kidMode ? (stats.maxHeight > 100 ? "SKY HIGH! 🚀" : "Pretty tall! ⬆️") : `${stats.maxHeight} ft` },
-            { label: kidMode ? "G-FORCE" : "Est. G-Force", value: kidMode ? (stats.maxG > 3 ? "WILD!! 🤯" : "Smooth! 😎") : `${stats.maxG} G` },
-          ].map((s) => (
-            <div key={s.label} className="text-center bg-gray-900/50 border border-purple-500/20 rounded-lg p-3">
-              <div className="text-xs text-purple-400 uppercase tracking-wider">{s.label}</div>
-              <div className="text-lg font-bold text-white mt-1">{s.value}</div>
+          {/* Speed */}
+          <div className="text-center bg-gray-900/50 border border-purple-500/20 rounded-lg p-3">
+            <div className="text-xs text-purple-400 uppercase tracking-wider">
+              {kidMode ? "SPEED" : "Max Speed"}
             </div>
-          ))}
+            <div className="text-lg font-bold text-white mt-1">
+              {kidMode ? (stats.maxSpeed > 50 ? "SUPER FAST! 🔥" : "Zippy! 💨") : `${stats.maxSpeed} mph`}
+            </div>
+          </div>
+
+          {/* Height */}
+          <div className="text-center bg-gray-900/50 border border-purple-500/20 rounded-lg p-3">
+            <div className="text-xs text-purple-400 uppercase tracking-wider">
+              {kidMode ? "HEIGHT" : "Max Height"}
+            </div>
+            <div className="text-lg font-bold text-white mt-1">
+              {kidMode ? (stats.maxHeight > 100 ? "SKY HIGH! 🚀" : "Pretty tall! ⬆️") : `${stats.maxHeight} ft`}
+            </div>
+          </div>
+
+          {/* G-Force with warnings */}
+          <div className={`text-center rounded-lg p-3 ${
+            stats.maxG > 10
+              ? "bg-red-900/50 border border-red-500/40"
+              : stats.maxG > 5
+              ? "bg-yellow-900/50 border border-yellow-500/30"
+              : "bg-gray-900/50 border border-purple-500/20"
+          }`}>
+            <div className="text-xs text-purple-400 uppercase tracking-wider">
+              {kidMode ? "G-FORCE" : "Est. G-Force"}
+            </div>
+            <div className={`text-lg font-bold mt-1 ${
+              stats.maxG > 10 ? "text-red-300" : stats.maxG > 5 ? "text-yellow-300" : "text-white"
+            }`}>
+              {kidMode ? (
+                stats.maxG > 10 ? "IMPOSSIBLE! 💀" : stats.maxG > 5 ? "WILD!! 🤯" : stats.maxG > 3 ? "Intense! 😬" : "Smooth! 😎"
+              ) : (
+                `${stats.maxG} G`
+              )}
+            </div>
+            {!kidMode && stats.maxG > 5 && (
+              <div className={`text-xs mt-1 ${stats.maxG > 10 ? "text-red-400" : "text-yellow-400"}`}>
+                {stats.maxG > 10 ? "☠️ Not survivable!" : "⚠️ Intense!"}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Physics Explainer */}
+      {stats.maxSpeed > 0 && (
+        <div className="mt-6 max-w-2xl mx-auto">
+          <button
+            onClick={() => setShowExplainer(!showExplainer)}
+            className="w-full text-left px-4 py-3 bg-gray-900/50 border border-purple-500/20 rounded-lg text-purple-300 hover:bg-gray-800/50 transition-colors flex items-center justify-between"
+          >
+            <span className="text-sm font-medium">
+              {kidMode ? "🧪 How does the math work?" : "How are these calculated?"}
+            </span>
+            <span className={`transform transition-transform ${showExplainer ? "rotate-180" : ""}`}>▼</span>
+          </button>
+
+          {showExplainer && (
+            <div className="mt-2 p-4 bg-gray-900/70 border border-purple-500/20 rounded-lg text-sm text-purple-200 space-y-3">
+              {kidMode ? (
+                <>
+                  <p><strong>Speed:</strong> When the coaster goes down a hill, it trades height for speed - like a ball rolling down a ramp! The bigger the drop, the faster you go.</p>
+                  <p><strong>Height:</strong> This is just how tall your biggest hill is, measured from where you started.</p>
+                  <p><strong>G-Force:</strong> This is how hard the ride pushes you into your seat. When you go around a tight curve really fast, you feel heavier - that&apos;s G-force! 1G is normal gravity, 2G means you feel twice as heavy.</p>
+                </>
+              ) : (
+                <>
+                  <p><strong>Speed</strong> uses conservation of energy. Potential energy converts to kinetic energy as the coaster descends:</p>
+                  <p className="font-mono text-xs bg-gray-800 rounded px-2 py-1 inline-block">v = √(2gh)</p>
+                  <p className="text-purple-300/80">where g = 9.81 m/s² and h = height drop in meters. We assume no friction.</p>
+
+                  <p className="mt-3"><strong>Height</strong> is the pixel difference from start, converted to feet (0.5 px/m × 3.28 ft/m).</p>
+
+                  <p className="mt-3"><strong>G-Force</strong> comes from centripetal acceleration when moving through a curve:</p>
+                  <p className="font-mono text-xs bg-gray-800 rounded px-2 py-1 inline-block">G = v² / (r × g)</p>
+                  <p className="text-purple-300/80">where r = radius of curvature, calculated from the track&apos;s second derivative. Tighter curves + higher speeds = more Gs.</p>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
     </section>

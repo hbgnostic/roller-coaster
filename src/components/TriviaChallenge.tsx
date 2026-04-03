@@ -25,7 +25,12 @@ export default function TriviaChallenge() {
 
   useEffect(() => {
     (async () => {
-      const userId = getUserId();
+      // Reset state when switching modes
+      setSelected(null);
+      setRevealed(false);
+      setLoaded(false);
+
+      const userId = getUserId(kidMode);
       const score = await getTriviaScore(userId);
       if (score) {
         const today = new Date().toISOString().slice(0, 10);
@@ -34,10 +39,13 @@ export default function TriviaChallenge() {
         }
         setStreak(score.streak);
         setTotalCorrect(score.total_correct);
+      } else {
+        setStreak(0);
+        setTotalCorrect(0);
       }
       setLoaded(true);
     })();
-  }, []);
+  }, [kidMode]);
 
   const handleAnswer = async (idx: number) => {
     if (revealed) return;
@@ -45,7 +53,7 @@ export default function TriviaChallenge() {
     setRevealed(true);
 
     const correct = idx === q.answer;
-    const userId = getUserId();
+    const userId = getUserId(kidMode);
     const today = new Date().toISOString().slice(0, 10);
     const newStreak = correct ? streak + 1 : 0;
     const newTotal = correct ? totalCorrect + 1 : totalCorrect;

@@ -11,6 +11,7 @@ import TriviaChallenge from "@/components/TriviaChallenge";
 import AiChat from "@/components/AiChat";
 import CoasterCards from "@/components/CoasterCards";
 import FactSpinner from "@/components/FactSpinner";
+import Contest from "@/components/Contest";
 import { FirstVisitConfetti, HiddenClickEasterEgg } from "@/components/BirthdayEasterEggs";
 
 export default function Home() {
@@ -30,11 +31,12 @@ export default function Home() {
         <TriviaChallenge />
         <AiChat />
         <CoasterCards />
+        <Contest />
         <FactSpinner />
       </main>
       <footer className="text-center py-8 text-purple-400 text-sm border-t border-purple-500/10">
         <p>
-          Built with love for a coaster-obsessed drummer{" "}
+          Built with love for a coaster-obsessed son-in-law{" "}
           <HiddenClickEasterEgg />
         </p>
         <p className="text-xs text-purple-500 mt-1">CoasterVerse &copy; 2026</p>

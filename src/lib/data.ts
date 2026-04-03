@@ -115,6 +115,9 @@ export const coasterCards: CoasterCard[] = [
   { id: "expedition-everest", name: "Expedition Everest", park: "Disney's Animal Kingdom", year: 2006, type: "Steel", speed: 50, height: 199, length: 4424, inversions: 0, thrillRating: 7, rarity: "Common", unlockMethod: "default", kidComparison: "You go BACKWARDS away from a Yeti!" },
   { id: "top-thrill-2", name: "Top Thrill 2", park: "Cedar Point", year: 2025, type: "Launched", speed: 120, height: 420, length: 2800, inversions: 0, thrillRating: 10, rarity: "Legendary", unlockMethod: "Complete 7 trivia", kidComparison: "120 mph using MAGNETS! The future is here!" },
   { id: "the-smiler", name: "The Smiler", park: "Alton Towers", year: 2013, type: "Steel", speed: 53, height: 98, length: 3838, inversions: 14, thrillRating: 8, rarity: "Rare", unlockMethod: "Complete 2 trivia", kidComparison: "14 times upside-down! More than ANY other coaster!" },
+  // Birthday cards
+  { id: "class-of-88", name: "Class of '88", park: "Special Edition", year: 1988, type: "Steel", speed: 76, height: 170, length: 4000, inversions: 3, thrillRating: 8, rarity: "Legendary", unlockMethod: "birthday-april", kidComparison: "From the year coasters got SERIOUS! Vortex opened with 6 loops!" },
+  { id: "born-to-ride", name: "Born to Ride", park: "Special Edition", year: 2019, type: "Hybrid", speed: 80, height: 200, length: 5000, inversions: 4, thrillRating: 10, rarity: "Legendary", unlockMethod: "birthday-october", kidComparison: "The year YOU were born, coasters were the best EVER!" },
 ];
 
 /* ---------- FACTS ---------- */

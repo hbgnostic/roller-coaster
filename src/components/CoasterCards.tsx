@@ -18,13 +18,26 @@ export default function CoasterCards() {
 
   useEffect(() => {
     (async () => {
-      const userId = getUserId();
+      const userId = getUserId(kidMode);
       const cards = await getUnlockedCards(userId);
       // Default unlocked cards
       const defaults = coasterCards.filter((c) => c.unlockMethod === "default").map((c) => c.id);
-      setUnlocked(new Set([...cards, ...defaults]));
+
+      // Birthday cards - unlock during their birthday month
+      const currentMonth = new Date().getMonth(); // 0-indexed
+      const birthdayCards: string[] = [];
+      if (currentMonth === 3) { // April - Dad's birthday
+        const aprilCard = coasterCards.find((c) => c.unlockMethod === "birthday-april");
+        if (aprilCard) birthdayCards.push(aprilCard.id);
+      }
+      if (currentMonth === 9) { // October - Son's birthday
+        const octoberCard = coasterCards.find((c) => c.unlockMethod === "birthday-october");
+        if (octoberCard) birthdayCards.push(octoberCard.id);
+      }
+
+      setUnlocked(new Set([...cards, ...defaults, ...birthdayCards]));
     })();
-  }, []);
+  }, [kidMode]);
 
   const toggleFlip = (id: string) => {
     setFlipped((prev) => {
@@ -79,10 +92,25 @@ function CardItem({
   const r = rarityColors[card.rarity];
 
   if (!isUnlocked) {
+    // Special display for birthday cards
+    const isBirthdayCard = card.unlockMethod.startsWith("birthday-");
+    const birthdayMonth = card.unlockMethod === "birthday-april" ? "April" : card.unlockMethod === "birthday-october" ? "October" : null;
+
     return (
-      <div className="aspect-[3/4] rounded-xl bg-gray-900 border-2 border-gray-700 flex flex-col items-center justify-center p-4 text-center">
-        <span className="text-4xl mb-3">🔒</span>
-        <p className="text-xs text-gray-500">{card.unlockMethod}</p>
+      <div className={`aspect-[3/4] rounded-xl border-2 flex flex-col items-center justify-center p-4 text-center ${
+        isBirthdayCard
+          ? "bg-gradient-to-b from-pink-900/30 to-purple-900/30 border-pink-500/30"
+          : "bg-gray-900 border-gray-700"
+      }`}>
+        <span className="text-4xl mb-3">{isBirthdayCard ? "🎂" : "🔒"}</span>
+        <p className={`text-xs ${isBirthdayCard ? "text-pink-300" : "text-gray-500"}`}>
+          {isBirthdayCard
+            ? `Unlocks in ${birthdayMonth}!`
+            : card.unlockMethod}
+        </p>
+        {isBirthdayCard && (
+          <p className="text-[10px] text-pink-400 mt-1">Birthday Special</p>
+        )}
       </div>
     );
   }

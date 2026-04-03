@@ -34,14 +34,16 @@ export interface VisitLog {
 }
 
 // ---------- Persistence helpers ----------
-const USER_ID_KEY = "coasterverse_user_id";
+const USER_ID_KEY_ADULT = "coasterverse_user_id_adult";
+const USER_ID_KEY_KID = "coasterverse_user_id_kid";
 
-export function getUserId(): string {
+export function getUserId(kidMode: boolean = false): string {
   if (typeof window === "undefined") return "server";
-  let id = localStorage.getItem(USER_ID_KEY);
+  const key = kidMode ? USER_ID_KEY_KID : USER_ID_KEY_ADULT;
+  let id = localStorage.getItem(key);
   if (!id) {
     id = crypto.randomUUID();
-    localStorage.setItem(USER_ID_KEY, id);
+    localStorage.setItem(key, id);
   }
   return id;
 }
@@ -101,4 +103,24 @@ export async function unlockCard(userId: string, cardId: string) {
   await supabase
     .from("card_unlocks")
     .upsert({ user_id: userId, card_id: cardId }, { onConflict: "user_id,card_id" });
+}
+
+export async function getDesignCount(userId: string): Promise<number> {
+  const { count } = await supabase
+    .from("saved_designs")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId);
+  return count ?? 0;
+}
+
+// ---------- Contest helpers ----------
+export async function checkContestWon(): Promise<boolean> {
+  const { count } = await supabase
+    .from("contest_wins")
+    .select("*", { count: "exact", head: true });
+  return (count ?? 0) > 0;
+}
+
+export async function markContestWon() {
+  await supabase.from("contest_wins").insert({});
 }
