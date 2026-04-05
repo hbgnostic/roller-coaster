@@ -1,85 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import { useMode } from "@/lib/ModeContext";
-
-const links = [
-  { href: "#timeline", label: "Timeline" },
-  { href: "#builder", label: "Builder" },
-  { href: "#trivia", label: "Trivia" },
-  { href: "#chat", label: "AI Chat" },
-  { href: "#cards", label: "Cards" },
-  { href: "#facts", label: "Facts" },
+const navItems = [
+  { href: "#timeline", label: "History", emoji: "🕰️", color: "from-red-500 to-orange-500" },
+  { href: "#builder", label: "Build", emoji: "🎨", color: "from-orange-500 to-yellow-500" },
+  { href: "#trivia", label: "Quiz", emoji: "🧠", color: "from-yellow-500 to-amber-500" },
+  { href: "#cards", label: "Cards", emoji: "🃏", color: "from-amber-500 to-orange-500" },
+  { href: "#chat", label: "Ask AI", emoji: "🤖", color: "from-orange-500 to-red-500" },
+  { href: "#facts", label: "Facts", emoji: "💡", color: "from-red-500 to-amber-500" },
 ];
 
 export default function Navbar() {
-  const { kidMode, toggleMode } = useMode();
-  const [open, setOpen] = useState(false);
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-gray-950/80 backdrop-blur-lg border-b border-purple-500/10">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-gray-950/90 backdrop-blur-lg border-b border-amber-500/20">
+      <div className="max-w-6xl mx-auto px-2 py-2">
         {/* Logo */}
-        <a href="#" className="text-lg font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          CoasterVerse
-        </a>
-
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-6">
-          {links.map((l) => (
-            <a key={l.href} href={l.href} className="text-sm text-purple-300 hover:text-pink-400 transition-colors">
-              {l.label}
-            </a>
-          ))}
-          <button
-            onClick={toggleMode}
-            className="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all"
-            style={{
-              borderColor: kidMode ? "#fbbf24" : "#a855f7",
-              color: kidMode ? "#fbbf24" : "#a855f7",
-            }}
-          >
-            {kidMode ? "🧒 Kid" : "🔧 Eng"}
-          </button>
+        <div className="flex items-center justify-center mb-2">
+          <a href="#" className="text-lg font-black bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
+            🎢 CoasterVerse
+          </a>
         </div>
 
-        {/* Hamburger */}
-        <button className="md:hidden text-purple-300" onClick={() => setOpen(!open)}>
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {open ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
-      </div>
+        {/* Navigation blocks - horizontal scroll on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide justify-center">
+          {/* Contest - Special highlighted block */}
+          <a
+            href="#contest"
+            className="flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 text-gray-900 font-bold text-xs shadow-lg hover:scale-105 transition-transform animate-pulse"
+          >
+            <span className="text-lg">🏆</span>
+            <span>Win!</span>
+          </a>
 
-      {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden bg-gray-950/95 backdrop-blur-lg border-b border-purple-500/10 px-4 pb-4">
-          {links.map((l) => (
+          {navItems.map((item) => (
             <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="block py-2 text-sm text-purple-300 hover:text-pink-400 transition-colors"
+              key={item.href}
+              href={item.href}
+              className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br ${item.color} text-white font-bold text-xs shadow-md hover:scale-105 transition-transform`}
             >
-              {l.label}
+              <span className="text-lg">{item.emoji}</span>
+              <span>{item.label}</span>
             </a>
           ))}
-          <button
-            onClick={() => { toggleMode(); setOpen(false); }}
-            className="mt-2 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border"
-            style={{
-              borderColor: kidMode ? "#fbbf24" : "#a855f7",
-              color: kidMode ? "#fbbf24" : "#a855f7",
-            }}
-          >
-            {kidMode ? "🧒 Kid Mode" : "🔧 Engineer Mode"}
-          </button>
         </div>
-      )}
+      </div>
     </nav>
   );
 }

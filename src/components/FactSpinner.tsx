@@ -42,10 +42,10 @@ export default function FactSpinner() {
 
   return (
     <section id="facts" className="py-20 px-4 max-w-2xl mx-auto">
-      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
         {kidMode ? "🎡 Spin for a Fun Fact!" : "Did You Know?"}
       </h2>
-      <p className="text-center text-purple-300 mb-10">
+      <p className="text-center text-amber-300 mb-10">
         {kidMode ? "Spin the wheel and learn something AWESOME!" : "Spin the wheel for a random roller coaster fact"}
       </p>
 
@@ -53,13 +53,13 @@ export default function FactSpinner() {
       <div className="relative mx-auto" style={{ width: 280, height: 280 }}>
         {/* Pointer */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-          <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-pink-400 drop-shadow-lg" />
+          <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-yellow-400 drop-shadow-lg" />
         </div>
 
         {/* Spinning wheel */}
         <div
           ref={wheelRef}
-          className="w-full h-full rounded-full border-4 border-purple-500/30 overflow-hidden relative"
+          className="w-full h-full rounded-full border-4 border-red-500/30 overflow-hidden relative"
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: spinning ? "transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)" : "none",
@@ -98,7 +98,7 @@ export default function FactSpinner() {
         <button
           onClick={spin}
           disabled={spinning}
-          className="px-10 py-4 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-lg hover:from-pink-400 hover:to-purple-400 disabled:opacity-50 transition-all shadow-lg shadow-pink-500/25 active:scale-95"
+          className="px-10 py-4 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-lg hover:from-yellow-400 hover:to-amber-400 disabled:opacity-50 transition-all shadow-lg shadow-orange-500/25 active:scale-95"
         >
           {spinning ? (kidMode ? "Spinning...! 🌀" : "Spinning...") : (kidMode ? "🎰 SPIN!" : "Spin the Wheel")}
         </button>
@@ -106,8 +106,8 @@ export default function FactSpinner() {
 
       {/* Fact display */}
       {currentFact && (
-        <div className="mt-8 p-6 bg-gray-900/80 border border-purple-500/20 rounded-2xl text-center animate-fade-in">
-          <p className="text-lg text-purple-100 leading-relaxed">{currentFact}</p>
+        <div className="mt-8 p-6 bg-gray-900/80 border border-red-500/20 rounded-2xl text-center animate-fade-in">
+          <p className="text-lg text-amber-100 leading-relaxed">{currentFact}</p>
         </div>
       )}
     </section>

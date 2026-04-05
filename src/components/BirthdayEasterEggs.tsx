@@ -73,10 +73,10 @@ export function HiddenClickEasterEgg() {
           <div className="animate-scale-in text-center">
             <div className="text-8xl animate-bounce mb-4">🎂</div>
             <div className="bg-gray-900/95 border-2 border-yellow-400 rounded-2xl px-8 py-6 shadow-2xl shadow-yellow-500/20">
-              <p className="text-3xl font-black bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+              <p className="text-3xl font-black bg-gradient-to-r from-yellow-400 via-yellow-400 to-amber-400 bg-clip-text text-transparent">
                 HAPPY 38TH!
               </p>
-              <p className="text-purple-300 mt-2">
+              <p className="text-amber-300 mt-2">
                 38 clicks for 38 years — you found the secret!
               </p>
               <div className="flex justify-center gap-2 mt-3">

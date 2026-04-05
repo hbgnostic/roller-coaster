@@ -73,7 +73,7 @@ export default function TriviaChallenge() {
 
   return (
     <section id="trivia" className="py-20 px-4 max-w-2xl mx-auto">
-      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
         {kidMode ? "🧠 Daily Coaster Quiz!" : "Daily Coaster Challenge"}
       </h2>
 
@@ -81,25 +81,25 @@ export default function TriviaChallenge() {
       <div className="flex justify-center gap-6 mb-8">
         <div className="text-center">
           <div className="text-3xl font-black text-yellow-400">{streak}</div>
-          <div className="text-xs text-purple-300 uppercase tracking-wider">
+          <div className="text-xs text-amber-300 uppercase tracking-wider">
             {kidMode ? "🔥 Streak" : "Day Streak"}
           </div>
         </div>
         <div className="text-center">
           <div className="text-3xl font-black text-green-400">{totalCorrect}</div>
-          <div className="text-xs text-purple-300 uppercase tracking-wider">
+          <div className="text-xs text-amber-300 uppercase tracking-wider">
             {kidMode ? "⭐ Total" : "Total Correct"}
           </div>
         </div>
       </div>
 
       {/* Question card */}
-      <div className="bg-gray-900/80 border border-purple-500/20 rounded-2xl p-6 md:p-8">
+      <div className="bg-gray-900/80 border border-red-500/20 rounded-2xl p-6 md:p-8">
         <p className="text-lg md:text-xl font-semibold text-white mb-6">{question}</p>
 
         <div className="space-y-3">
           {options.map((opt, i) => {
-            let style = "bg-gray-800/50 border-purple-500/20 text-purple-100 hover:border-pink-500/40";
+            let style = "bg-gray-800/50 border-red-500/20 text-amber-100 hover:border-orange-500/40";
             if (revealed) {
               if (i === q.answer) style = "bg-green-900/40 border-green-500/50 text-green-200";
               else if (i === selected) style = "bg-red-900/40 border-red-500/50 text-red-200";
@@ -122,9 +122,9 @@ export default function TriviaChallenge() {
 
         {/* Fun fact reveal */}
         {revealed && (
-          <div className="mt-6 p-4 bg-purple-900/20 border border-purple-500/20 rounded-xl">
-            <p className="text-sm text-purple-200">
-              <span className="font-bold text-pink-400">
+          <div className="mt-6 p-4 bg-red-900/20 border border-red-500/20 rounded-xl">
+            <p className="text-sm text-amber-200">
+              <span className="font-bold text-yellow-400">
                 {kidMode ? "Cool fact! " : "Fun fact: "}
               </span>
               {funFact}
@@ -133,7 +133,7 @@ export default function TriviaChallenge() {
         )}
 
         {revealed && (
-          <p className="text-center text-purple-400 text-sm mt-4">
+          <p className="text-center text-amber-400 text-sm mt-4">
             Come back tomorrow for a new question!
           </p>
         )}

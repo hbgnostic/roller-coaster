@@ -41,10 +41,10 @@ function ProgressBar({ current, goal, label, icon, kidMode }: {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center text-sm">
-        <span className={kidMode ? "text-pink-300" : "text-purple-300"}>
+        <span className={kidMode ? "text-yellow-300" : "text-amber-300"}>
           {icon} {label}
         </span>
-        <span className={complete ? "text-green-400 font-bold" : "text-purple-400"}>
+        <span className={complete ? "text-green-400 font-bold" : "text-amber-400"}>
           {current}/{goal} {complete && "✓"}
         </span>
       </div>
@@ -54,8 +54,8 @@ function ProgressBar({ current, goal, label, icon, kidMode }: {
             complete
               ? "bg-gradient-to-r from-green-500 to-emerald-400"
               : kidMode
-              ? "bg-gradient-to-r from-pink-500 to-purple-500"
-              : "bg-gradient-to-r from-purple-600 to-pink-500"
+              ? "bg-gradient-to-r from-orange-500 to-red-500"
+              : "bg-gradient-to-r from-red-600 to-orange-500"
           }`}
           style={{ width: `${percent}%` }}
         />
@@ -79,7 +79,7 @@ function PlayerCard({ title, progress, kidMode, isKidPlayer }: {
     <div className={`p-4 rounded-xl border ${
       hasCompletedAny
         ? "bg-green-900/20 border-green-500/30"
-        : "bg-gray-900/50 border-purple-500/20"
+        : "bg-gray-900/50 border-red-500/20"
     }`}>
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl">{isKidPlayer ? "👦" : "👨"}</span>
@@ -202,10 +202,10 @@ export default function Contest() {
 
   return (
     <section id="contest" className="py-20 px-4 max-w-4xl mx-auto">
-      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
         {kidMode ? "🏆 Secret Challenge!" : "Family Challenge"}
       </h2>
-      <p className="text-center text-purple-300 mb-8 max-w-xl mx-auto">
+      <p className="text-center text-amber-300 mb-8 max-w-xl mx-auto">
         {kidMode
           ? "Complete ANY challenge below — and get Dad to do one too — to unlock a SURPRISE!"
           : "Both players must complete at least one challenge path to unlock a special prize!"}
@@ -244,7 +244,7 @@ export default function Contest() {
 
       {/* Status Message */}
       {!bothWon && (
-        <p className="text-center text-purple-400 text-sm mt-6">
+        <p className="text-center text-amber-400 text-sm mt-6">
           {adultProgress?.hasWon && !kidProgress?.hasWon
             ? kidMode
               ? "Dad finished! Now it's YOUR turn!"
@@ -260,11 +260,11 @@ export default function Contest() {
       )}
 
       {/* How to complete */}
-      <div className="mt-8 p-4 bg-gray-900/50 border border-purple-500/20 rounded-xl">
-        <h4 className="font-bold text-purple-300 mb-2">
+      <div className="mt-8 p-4 bg-gray-900/50 border border-red-500/20 rounded-xl">
+        <h4 className="font-bold text-amber-300 mb-2">
           {kidMode ? "How do I complete a challenge?" : "How to complete a challenge"}
         </h4>
-        <ul className="text-sm text-purple-200 space-y-1">
+        <ul className="text-sm text-amber-200 space-y-1">
           <li>🧠 <strong>Trivia:</strong> {kidMode ? "Answer 7 quiz questions right!" : `Answer ${GOALS.trivia} trivia questions correctly (1 per day)`}</li>
           <li>📅 <strong>Visits:</strong> {kidMode ? "Come back 10 different days!" : `Visit the site on ${GOALS.visits} different days`}</li>
           <li>🃏 <strong>Cards:</strong> {kidMode ? "Collect 8 coaster cards!" : `Unlock ${GOALS.cards} coaster cards (via trivia, visits, or building)`}</li>

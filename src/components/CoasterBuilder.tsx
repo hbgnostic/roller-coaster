@@ -11,14 +11,12 @@ interface Point {
 
 const PRESETS: Record<string, Point[]> = {
   "The Beast": [
-    { x: 50, y: 350 }, { x: 120, y: 60 }, { x: 220, y: 300 }, { x: 320, y: 100 },
-    { x: 420, y: 280 }, { x: 520, y: 120 }, { x: 620, y: 260 }, { x: 720, y: 160 },
-    { x: 800, y: 350 },
+    { x: 50, y: 350 }, { x: 150, y: 80 }, { x: 280, y: 280 }, { x: 400, y: 120 },
+    { x: 520, y: 260 }, { x: 640, y: 140 }, { x: 750, y: 300 }, { x: 820, y: 350 },
   ],
   "Loop-de-Loop": [
-    { x: 50, y: 350 }, { x: 100, y: 60 }, { x: 200, y: 320 }, { x: 280, y: 140 },
-    { x: 320, y: 220 }, { x: 360, y: 140 }, { x: 440, y: 320 }, { x: 540, y: 100 },
-    { x: 640, y: 280 }, { x: 750, y: 350 },
+    { x: 50, y: 350 }, { x: 150, y: 100 }, { x: 280, y: 280 }, { x: 380, y: 150 },
+    { x: 480, y: 250 }, { x: 580, y: 120 }, { x: 700, y: 300 }, { x: 800, y: 350 },
   ],
   "Kid Friendly": [
     { x: 50, y: 350 }, { x: 150, y: 200 }, { x: 300, y: 300 }, { x: 450, y: 220 },
@@ -56,42 +54,58 @@ function speedAtPoint(startY: number, currentY: number): number {
   return v * 2.237; // m/s to mph
 }
 
-function speedAtPointMs(startY: number, currentY: number): number {
-  const h = Math.max(0, startY - currentY) * PIXELS_TO_METERS;
-  return Math.sqrt(2 * GRAVITY * h);
-}
+// Calculate G-force using vertical acceleration model
+// This measures how much the track pushes you up/down as you follow the curve
+function calculateGForce(points: Point[], i: number, startY: number, windowSize: number = 100): number {
+  const half = Math.floor(windowSize / 2);
+  if (i < half || i >= points.length - half) return 1; // baseline 1G
 
-// Calculate radius of curvature using numerical derivatives
-function radiusOfCurvature(points: Point[], i: number): number {
-  if (i <= 0 || i >= points.length - 1) return Infinity;
-
-  const prev = points[i - 1];
+  const prev = points[i - half];
   const curr = points[i];
-  const next = points[i + 1];
+  const next = points[i + half];
 
-  // First derivatives (central difference)
-  const dx = (next.x - prev.x) / 2;
-  const dy = (next.y - prev.y) / 2;
+  // Get speed at this point (m/s)
+  const speedMs = Math.sqrt(2 * GRAVITY * Math.max(0, startY - curr.y) * PIXELS_TO_METERS);
+  if (speedMs < 1) return 1; // Too slow to matter
 
-  // Second derivatives
-  const ddx = next.x - 2 * curr.x + prev.x;
-  const ddy = next.y - 2 * curr.y + prev.y;
+  // Calculate track slope before and after this point
+  const dx1 = curr.x - prev.x;
+  const dy1 = curr.y - prev.y;
+  const dx2 = next.x - curr.x;
+  const dy2 = next.y - curr.y;
 
-  // Curvature = |x'y'' - y'x''| / (x'^2 + y'^2)^(3/2)
-  const numerator = Math.abs(dx * ddy - dy * ddx);
-  const denominator = Math.pow(dx * dx + dy * dy, 1.5);
+  const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+  const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
-  if (numerator < 0.0001) return Infinity; // Nearly straight
+  if (len1 < 1 || len2 < 1) return 1;
 
-  const curvature = numerator / denominator;
-  return (1 / curvature) * PIXELS_TO_METERS; // radius in meters
-}
+  // Slope (dy/dx) before and after - note: canvas Y is inverted (down is positive)
+  const slope1 = dy1 / dx1;
+  const slope2 = dy2 / dx2;
 
-// Calculate G-force from centripetal acceleration
-function gForceAtPoint(speed: number, radius: number): number {
-  if (radius === Infinity || radius === 0) return 0;
-  const centripetalAccel = (speed * speed) / radius;
-  return centripetalAccel / GRAVITY;
+  // Change in slope indicates vertical curvature
+  // Positive slope change = concave up (valley) = positive Gs
+  // Negative slope change = concave down (hilltop) = reduced Gs / airtime
+  const slopeChange = slope2 - slope1;
+
+  // Distance traveled (in meters) over which this change occurs
+  const arcLengthPixels = (len1 + len2) / 2;
+  const arcLengthMeters = arcLengthPixels * PIXELS_TO_METERS;
+
+  // Time to travel this arc at current speed
+  const dt = arcLengthMeters / speedMs;
+
+  // Vertical acceleration estimate: how fast the vertical velocity changes
+  // Using the slope change and horizontal speed component
+  const horizontalSpeed = speedMs / Math.sqrt(1 + slope1 * slope1); // approximate
+  const verticalAccel = (slopeChange * horizontalSpeed) / dt;
+
+  // G-force: 1G baseline + vertical acceleration component
+  // Negative because canvas Y is inverted (going "up" in canvas is negative Y)
+  const gForce = 1 - (verticalAccel / GRAVITY);
+
+  // Clamp to minimum 0, but allow high values for crazy custom designs
+  return Math.max(0, gForce);
 }
 
 export default function CoasterBuilder() {
@@ -122,7 +136,7 @@ export default function CoasterBuilder() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // Grid
-    ctx.strokeStyle = "rgba(168, 85, 247, 0.08)";
+    ctx.strokeStyle = "rgba(245, 158, 11, 0.08)";
     ctx.lineWidth = 1;
     for (let x = 0; x < canvasWidth; x += 50) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
@@ -132,14 +146,14 @@ export default function CoasterBuilder() {
     }
 
     // Ground
-    ctx.fillStyle = "rgba(168, 85, 247, 0.05)";
+    ctx.fillStyle = "rgba(245, 158, 11, 0.05)";
     ctx.fillRect(0, canvasHeight - 30, canvasWidth, 30);
-    ctx.strokeStyle = "rgba(168, 85, 247, 0.3)";
+    ctx.strokeStyle = "rgba(245, 158, 11, 0.3)";
     ctx.beginPath(); ctx.moveTo(0, canvasHeight - 30); ctx.lineTo(canvasWidth, canvasHeight - 30); ctx.stroke();
 
     if (curvePoints.length > 1) {
       // Supports
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.15)";
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.15)";
       ctx.lineWidth = 2;
       for (let i = 0; i < curvePoints.length; i += 20) {
         const p = curvePoints[i];
@@ -153,9 +167,10 @@ export default function CoasterBuilder() {
       for (let i = 1; i < curvePoints.length; i++) {
         const spd = speedAtPoint(startY, curvePoints[i].y);
         const ratio = Math.min(spd / 80, 1);
-        const r = Math.round(59 + ratio * 185);
-        const g = Math.round(130 - ratio * 100);
-        const b = Math.round(246 - ratio * 200);
+        // Gold (245, 158, 11) to Red (220, 38, 38) as speed increases
+        const r = Math.round(245 - ratio * 25);
+        const g = Math.round(158 - ratio * 120);
+        const b = Math.round(11 + ratio * 27);
         ctx.strokeStyle = `rgb(${r},${g},${b})`;
         ctx.beginPath();
         ctx.moveTo(curvePoints[i - 1].x, curvePoints[i - 1].y);
@@ -165,7 +180,7 @@ export default function CoasterBuilder() {
 
       // Neon glow
       ctx.save();
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.2)";
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.2)";
       ctx.lineWidth = 12;
       ctx.filter = "blur(6px)";
       ctx.beginPath();
@@ -225,21 +240,29 @@ export default function CoasterBuilder() {
 
     // Compute stats using proper physics
     const startY = curvePoints[0].y;
-    let maxSpd = 0, maxH = 0, maxG = 0;
+    let maxSpd = 0, maxH = 0;
+    const gForces: number[] = [];
+
     for (let i = 1; i < curvePoints.length; i++) {
       const s = speedAtPoint(startY, curvePoints[i].y);
       const h = (startY - curvePoints[i].y) * PIXELS_TO_METERS * 3.28; // to feet
       if (s > maxSpd) maxSpd = s;
       if (h > maxH) maxH = h;
 
-      // G-force from centripetal acceleration: a = v²/r
-      if (i > 0 && i < curvePoints.length - 1) {
-        const speedMs = speedAtPointMs(startY, curvePoints[i].y);
-        const radius = radiusOfCurvature(curvePoints, i);
-        const g = gForceAtPoint(speedMs, radius);
-        if (g > maxG) maxG = g;
+      // G-force from vertical acceleration through the curve
+      const windowSize = 100; // Large window smooths presets, but extreme custom V-shapes can still hit high Gs
+      const half = Math.floor(windowSize / 2);
+      if (i >= half && i < curvePoints.length - half) {
+        const g = calculateGForce(curvePoints, i, startY, windowSize);
+        if (isFinite(g)) {
+          gForces.push(g);
+        }
       }
     }
+
+    // Take maximum G-force (already clamped to reasonable range in calculateGForce)
+    const maxG = gForces.length > 0 ? Math.max(...gForces) : 1;
+
     setStats({ maxSpeed: Math.round(maxSpd), maxHeight: Math.round(Math.abs(maxH)), maxG: Math.round(maxG * 10) / 10 });
 
     let idx = 0;
@@ -265,10 +288,10 @@ export default function CoasterBuilder() {
 
   return (
     <section id="builder" className="py-20 px-4 max-w-5xl mx-auto">
-      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
         {kidMode ? "🎨 Build Your Own Coaster!" : "Coaster Builder"}
       </h2>
-      <p className="text-center text-purple-300 mb-8">
+      <p className="text-center text-amber-300 mb-8">
         {kidMode ? "Click to drop points and make a CRAZY track!" : "Click the canvas to place control points. Catmull-Rom spline interpolation creates smooth curves."}
       </p>
 
@@ -280,8 +303,8 @@ export default function CoasterBuilder() {
             onClick={() => { setPoints(PRESETS[name]); setAnimating(false); setActivePreset(name); }}
             className={`px-4 py-2 rounded-lg text-sm transition-colors ${
               activePreset === name
-                ? "bg-purple-600 border border-purple-400 text-white"
-                : "bg-purple-900/50 border border-purple-500/30 text-purple-200 hover:bg-purple-800/50"
+                ? "bg-red-600 border border-amber-400 text-white"
+                : "bg-red-900/50 border border-red-500/30 text-amber-200 hover:bg-red-800/50"
             }`}
           >
             {name}
@@ -296,7 +319,7 @@ export default function CoasterBuilder() {
       </div>
 
       {/* Canvas */}
-      <div ref={containerRef} className="relative bg-gray-950 border border-purple-500/20 rounded-xl overflow-hidden">
+      <div ref={containerRef} className="relative bg-gray-950 border border-red-500/20 rounded-xl overflow-hidden">
         <canvas
           ref={canvasRef}
           width={canvasWidth}
@@ -327,14 +350,14 @@ export default function CoasterBuilder() {
         <button
           onClick={launch}
           disabled={points.length < 2 || animating}
-          className="px-8 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-lg hover:from-pink-400 hover:to-purple-400 disabled:opacity-40 transition-all shadow-lg shadow-pink-500/25"
+          className="px-8 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-lg hover:from-yellow-400 hover:to-amber-400 disabled:opacity-40 transition-all shadow-lg shadow-orange-500/25"
         >
           {kidMode ? "🚀 LAUNCH!!!" : "Launch!"}
         </button>
         <button
           onClick={handleSave}
           disabled={points.length < 2}
-          className="px-6 py-3 rounded-xl bg-gray-800 border border-purple-500/30 text-purple-200 font-medium hover:bg-gray-700 disabled:opacity-40 transition-colors"
+          className="px-6 py-3 rounded-xl bg-gray-800 border border-red-500/30 text-amber-200 font-medium hover:bg-gray-700 disabled:opacity-40 transition-colors"
         >
           {kidMode ? "💾 Save!" : "Save Design"}
         </button>
@@ -344,8 +367,8 @@ export default function CoasterBuilder() {
       {(stats.maxSpeed > 0 || points.length > 1) && (
         <div className="mt-6 grid grid-cols-3 gap-4 max-w-md mx-auto">
           {/* Speed */}
-          <div className="text-center bg-gray-900/50 border border-purple-500/20 rounded-lg p-3">
-            <div className="text-xs text-purple-400 uppercase tracking-wider">
+          <div className="text-center bg-gray-900/50 border border-red-500/20 rounded-lg p-3">
+            <div className="text-xs text-amber-400 uppercase tracking-wider">
               {kidMode ? "SPEED" : "Max Speed"}
             </div>
             <div className="text-lg font-bold text-white mt-1">
@@ -354,8 +377,8 @@ export default function CoasterBuilder() {
           </div>
 
           {/* Height */}
-          <div className="text-center bg-gray-900/50 border border-purple-500/20 rounded-lg p-3">
-            <div className="text-xs text-purple-400 uppercase tracking-wider">
+          <div className="text-center bg-gray-900/50 border border-red-500/20 rounded-lg p-3">
+            <div className="text-xs text-amber-400 uppercase tracking-wider">
               {kidMode ? "HEIGHT" : "Max Height"}
             </div>
             <div className="text-lg font-bold text-white mt-1">
@@ -369,9 +392,9 @@ export default function CoasterBuilder() {
               ? "bg-red-900/50 border border-red-500/40"
               : stats.maxG > 5
               ? "bg-yellow-900/50 border border-yellow-500/30"
-              : "bg-gray-900/50 border border-purple-500/20"
+              : "bg-gray-900/50 border border-red-500/20"
           }`}>
-            <div className="text-xs text-purple-400 uppercase tracking-wider">
+            <div className="text-xs text-amber-400 uppercase tracking-wider">
               {kidMode ? "G-FORCE" : "Est. G-Force"}
             </div>
             <div className={`text-lg font-bold mt-1 ${
@@ -397,7 +420,7 @@ export default function CoasterBuilder() {
         <div className="mt-6 max-w-2xl mx-auto">
           <button
             onClick={() => setShowExplainer(!showExplainer)}
-            className="w-full text-left px-4 py-3 bg-gray-900/50 border border-purple-500/20 rounded-lg text-purple-300 hover:bg-gray-800/50 transition-colors flex items-center justify-between"
+            className="w-full text-left px-4 py-3 bg-gray-900/50 border border-red-500/20 rounded-lg text-amber-300 hover:bg-gray-800/50 transition-colors flex items-center justify-between"
           >
             <span className="text-sm font-medium">
               {kidMode ? "🧪 How does the math work?" : "How are these calculated?"}
@@ -406,24 +429,20 @@ export default function CoasterBuilder() {
           </button>
 
           {showExplainer && (
-            <div className="mt-2 p-4 bg-gray-900/70 border border-purple-500/20 rounded-lg text-sm text-purple-200 space-y-3">
+            <div className="mt-2 p-4 bg-gray-900/70 border border-red-500/20 rounded-lg text-sm text-amber-200 space-y-3">
               {kidMode ? (
                 <>
-                  <p><strong>Speed:</strong> When the coaster goes down a hill, it trades height for speed - like a ball rolling down a ramp! The bigger the drop, the faster you go.</p>
-                  <p><strong>Height:</strong> This is just how tall your biggest hill is, measured from where you started.</p>
-                  <p><strong>G-Force:</strong> This is how hard the ride pushes you into your seat. When you go around a tight curve really fast, you feel heavier - that&apos;s G-force! 1G is normal gravity, 2G means you feel twice as heavy.</p>
+                  <p><strong>Speed:</strong> Roller coasters don&apos;t have engines! After the first big hill, gravity does all the work. When you go down, you speed up. When you go up, you slow down. It&apos;s like sledding - the taller the hill, the faster you go!</p>
+                  <p><strong>Height:</strong> This is how tall your biggest drop is. Real coasters like Kingda Ka are over 450 feet tall - that&apos;s taller than the Statue of Liberty!</p>
+                  <p><strong>G-Force:</strong> Ever feel heavy on a fast elevator? Or light on a swing? That&apos;s G-force! At 1G you feel normal. At 2G you feel twice as heavy. Astronauts train at 3-4G. Above 6G, most people pass out!</p>
                 </>
               ) : (
                 <>
-                  <p><strong>Speed</strong> uses conservation of energy. Potential energy converts to kinetic energy as the coaster descends:</p>
-                  <p className="font-mono text-xs bg-gray-800 rounded px-2 py-1 inline-block">v = √(2gh)</p>
-                  <p className="text-purple-300/80">where g = 9.81 m/s² and h = height drop in meters. We assume no friction.</p>
+                  <p><strong>Speed:</strong> Coaster engineers use conservation of energy - the same principle that governs falling objects. At the top of a hill, you have potential energy. As you descend, that converts to kinetic energy (speed). A 200-foot drop produces about 75 mph, assuming minimal friction. That&apos;s why the first hill is always the tallest - you can never go higher than where you started without adding energy.</p>
 
-                  <p className="mt-3"><strong>Height</strong> is the pixel difference from start, converted to feet (0.5 px/m × 3.28 ft/m).</p>
+                  <p className="mt-3"><strong>Height:</strong> The first drop height determines everything. Engineers call this the &quot;lift hill&quot; - it&apos;s essentially storing energy for the entire ride. Every subsequent hill must be shorter, or the train won&apos;t make it over.</p>
 
-                  <p className="mt-3"><strong>G-Force</strong> comes from centripetal acceleration when moving through a curve:</p>
-                  <p className="font-mono text-xs bg-gray-800 rounded px-2 py-1 inline-block">G = v² / (r × g)</p>
-                  <p className="text-purple-300/80">where r = radius of curvature, calculated from the track&apos;s second derivative. Tighter curves + higher speeds = more Gs.</p>
+                  <p className="mt-3"><strong>G-Force:</strong> When you go through a valley, your body wants to keep going straight (Newton&apos;s first law), but the track pushes you upward. You feel this as extra weight - that&apos;s positive G-force. Engineers must balance thrill vs. safety: 3-4G is exciting, 5-6G is extreme, and sustained forces above 6G can cause blackouts. The tighter the curve and the faster you&apos;re going, the higher the G-force.</p>
                 </>
               )}
             </div>

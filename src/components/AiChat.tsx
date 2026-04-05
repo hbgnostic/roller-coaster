@@ -83,20 +83,20 @@ export default function AiChat() {
 
   return (
     <section id="chat" className="py-20 px-4 max-w-2xl mx-auto">
-      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+      <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
         {kidMode ? "🤖 Ask CoasterBot!" : "AI Coaster Expert"}
       </h2>
-      <p className="text-center text-purple-300 mb-8">
+      <p className="text-center text-amber-300 mb-8">
         {kidMode
           ? "Ask me ANYTHING about roller coasters!"
           : "Powered by Claude — ask about engineering, physics, history, or lore"}
       </p>
 
-      <div className="bg-gray-900/80 border border-purple-500/20 rounded-2xl overflow-hidden flex flex-col" style={{ height: "500px" }}>
+      <div className="bg-gray-900/80 border border-red-500/20 rounded-2xl overflow-hidden flex flex-col" style={{ height: "500px" }}>
         {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (
-            <div className="text-center text-purple-400 mt-12">
+            <div className="text-center text-amber-400 mt-12">
               <p className="text-4xl mb-3">🎢</p>
               <p className="text-sm">
                 {kidMode
@@ -110,12 +110,12 @@ export default function AiChat() {
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "bg-purple-600 text-white rounded-br-md"
-                    : "bg-gray-800 text-purple-100 rounded-bl-md border border-purple-500/10"
+                    ? "bg-red-600 text-white rounded-br-md"
+                    : "bg-gray-800 text-amber-100 rounded-bl-md border border-red-500/10"
                 }`}
               >
                 {m.role === "assistant" && (
-                  <span className="text-xs font-bold text-pink-400 block mb-1">CoasterBot</span>
+                  <span className="text-xs font-bold text-yellow-400 block mb-1">CoasterBot</span>
                 )}
                 <p className="whitespace-pre-wrap">{m.content}</p>
               </div>
@@ -123,11 +123,11 @@ export default function AiChat() {
           ))}
           {loading && messages[messages.length - 1]?.role !== "assistant" && (
             <div className="flex justify-start">
-              <div className="bg-gray-800 rounded-2xl rounded-bl-md px-4 py-3 border border-purple-500/10">
+              <div className="bg-gray-800 rounded-2xl rounded-bl-md px-4 py-3 border border-red-500/10">
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" />
-                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" />
+                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
+                  <span className="w-2 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
                 </div>
               </div>
             </div>
@@ -135,19 +135,19 @@ export default function AiChat() {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-purple-500/20">
+        <div className="p-4 border-t border-red-500/20">
           <div className="flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder={kidMode ? "Ask me something cool! 🎢" : "Ask about roller coasters..."}
-              className="flex-1 bg-gray-800 border border-purple-500/20 rounded-xl px-4 py-3 text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500/50 text-sm"
+              className="flex-1 bg-gray-800 border border-red-500/20 rounded-xl px-4 py-3 text-white placeholder-amber-400/50 focus:outline-none focus:border-orange-500/50 text-sm"
             />
             <button
               onClick={send}
               disabled={loading || !input.trim()}
-              className="px-5 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold hover:from-pink-400 hover:to-purple-400 disabled:opacity-40 transition-all"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold hover:from-yellow-400 hover:to-amber-400 disabled:opacity-40 transition-all"
             >
               Send
             </button>

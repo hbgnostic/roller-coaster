@@ -33,7 +33,7 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4">
       {/* Animated background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-purple-950/30 to-gray-950" />
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-red-950/30 to-gray-950" />
 
       {/* SVG Track */}
       <div className="relative w-full max-w-4xl mx-auto mb-8">
@@ -46,7 +46,7 @@ export default function Hero() {
               y1={i % 2 === 0 ? 50 : 200}
               x2={x}
               y2={280}
-              stroke="#4a1d7a"
+              stroke="#7c2d12"
               strokeWidth="3"
               opacity="0.4"
             />
@@ -63,7 +63,7 @@ export default function Hero() {
           <path
             d={trackD}
             fill="none"
-            stroke="#c084fc"
+            stroke="#fbbf24"
             strokeWidth="2"
             strokeDasharray="8 4"
             opacity="0.5"
@@ -72,7 +72,7 @@ export default function Hero() {
           <path
             d={trackD}
             fill="none"
-            stroke="#a855f7"
+            stroke="#f59e0b"
             strokeWidth="12"
             opacity="0.15"
             filter="url(#glow)"
@@ -87,9 +87,9 @@ export default function Hero() {
           </g>
           <defs>
             <linearGradient id="trackGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#7c3aed" />
-              <stop offset="50%" stopColor="#ec4899" />
-              <stop offset="100%" stopColor="#7c3aed" />
+              <stop offset="0%" stopColor="#dc2626" />
+              <stop offset="50%" stopColor="#f59e0b" />
+              <stop offset="100%" stopColor="#dc2626" />
             </linearGradient>
             <filter id="glow">
               <feGaussianBlur stdDeviation="6" result="blur" />
@@ -104,14 +104,14 @@ export default function Hero() {
 
       {/* Title */}
       <div className="relative text-center z-10">
-        <h1 className="text-6xl md:text-8xl font-black tracking-tight bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent drop-shadow-lg">
+        <h1 className="text-6xl md:text-8xl font-black tracking-tight bg-gradient-to-r from-amber-400 via-yellow-400 to-yellow-400 bg-clip-text text-transparent drop-shadow-lg">
           CoasterVerse
         </h1>
-        <p className="text-xl md:text-2xl text-purple-200 mt-2 font-light">
+        <p className="text-xl md:text-2xl text-amber-200 mt-2 font-light">
           Your Universe of Thrills
         </p>
-        <div className="mt-6 inline-block bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 rounded-2xl px-6 py-3">
-          <p className="text-2xl md:text-3xl font-bold text-pink-300">
+        <div className="mt-6 inline-block bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl px-6 py-3">
+          <p className="text-2xl md:text-3xl font-bold text-yellow-300">
             {kidMode ? "🎂 Happy 38th Birthday! 🎉" : "Happy 38th Lap Around the Sun!"}
           </p>
         </div>
@@ -122,16 +122,16 @@ export default function Hero() {
             onClick={toggleMode}
             className="relative inline-flex items-center gap-3 px-6 py-3 rounded-full border-2 transition-all duration-300"
             style={{
-              borderColor: kidMode ? "#fbbf24" : "#a855f7",
-              backgroundColor: kidMode ? "rgba(251,191,36,0.1)" : "rgba(168,85,247,0.1)",
+              borderColor: kidMode ? "#f59e0b" : "#dc2626",
+              backgroundColor: kidMode ? "rgba(245,158,11,0.1)" : "rgba(220,38,38,0.1)",
             }}
           >
-            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: kidMode ? "#fbbf24" : "#a855f7" }}>
-              {kidMode ? "🧒 Kid Mode" : "🔧 Engineer Mode"}
+            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: kidMode ? "#fbbf24" : "#f87171" }}>
+              {kidMode ? "🚀 Rocket Mode" : "🔧 Dad Mode"}
             </span>
             <div
               className="w-12 h-6 rounded-full relative transition-colors duration-300"
-              style={{ backgroundColor: kidMode ? "#fbbf24" : "#7c3aed" }}
+              style={{ backgroundColor: kidMode ? "#f59e0b" : "#dc2626" }}
             >
               <div
                 className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300"
@@ -143,7 +143,7 @@ export default function Hero() {
 
         {/* Scroll hint */}
         <div className="mt-12 animate-bounce">
-          <svg className="w-6 h-6 text-purple-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-6 h-6 text-amber-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>

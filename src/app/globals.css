@@ -18,6 +18,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hide scrollbar for horizontal nav */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -26,11 +35,11 @@ html {
   background: #0a0118;
 }
 ::-webkit-scrollbar-thumb {
-  background: #7c3aed;
+  background: #dc2626;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a855f7;
+  background: #f59e0b;
 }
 
 /* Animations */
@@ -94,7 +103,7 @@ section::after {
   left: 10%;
   right: 10%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent);
 }
 
 section:last-of-type::after {

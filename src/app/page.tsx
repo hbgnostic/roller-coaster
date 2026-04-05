@@ -24,7 +24,7 @@ export default function Home() {
     <ModeProvider>
       <FirstVisitConfetti />
       <Navbar />
-      <main className="pt-14">
+      <main className="pt-20">
         <Hero />
         <Timeline />
         <CoasterBuilder />
@@ -34,12 +34,12 @@ export default function Home() {
         <Contest />
         <FactSpinner />
       </main>
-      <footer className="text-center py-8 text-purple-400 text-sm border-t border-purple-500/10">
+      <footer className="text-center py-8 text-amber-400 text-sm border-t border-red-500/10">
         <p>
           Built with love for a coaster-obsessed son-in-law{" "}
           <HiddenClickEasterEgg />
         </p>
-        <p className="text-xs text-purple-500 mt-1">CoasterVerse &copy; 2026</p>
+        <p className="text-xs text-red-500 mt-1">CoasterVerse &copy; 2026</p>
       </footer>
     </ModeProvider>
   );
