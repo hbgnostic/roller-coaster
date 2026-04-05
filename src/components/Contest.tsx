@@ -13,6 +13,82 @@ import {
 } from "@/lib/supabase";
 import { coasterCards } from "@/lib/data";
 
+// Confetti celebration popup
+function WinCelebration({ kidMode, onClose }: { kidMode: boolean; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Confetti */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {Array.from({ length: 100 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-confetti"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: "-10px",
+              width: `${8 + Math.random() * 10}px`,
+              height: `${8 + Math.random() * 10}px`,
+              borderRadius: Math.random() > 0.5 ? "50%" : "0",
+              backgroundColor: [
+                "#f43f5e", "#fbbf24", "#22c55e", "#3b82f6", "#a855f7",
+                "#ec4899", "#06b6d4", "#f97316",
+              ][i % 8],
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Modal */}
+      <div className="relative z-10 mx-4 max-w-md animate-scale-in">
+        <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border-4 border-yellow-400 rounded-3xl p-8 shadow-2xl shadow-yellow-500/30 text-center">
+          {/* Bouncing emojis */}
+          <div className="flex justify-center gap-3 mb-4">
+            {["🎉", "🎢", "🏆", "🎢", "🎉"].map((e, i) => (
+              <span
+                key={i}
+                className="text-4xl md:text-5xl animate-bounce"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                {e}
+              </span>
+            ))}
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 bg-clip-text text-transparent">
+            {kidMode ? "YOU WON!!!" : "YOU WON!"}
+          </h2>
+
+          <p className="text-xl md:text-2xl text-yellow-100 mb-6 leading-relaxed">
+            {kidMode
+              ? "You and Dad did it! You've won TWO TICKETS to the theme park of your choice!"
+              : "You've both completed the challenge! You've won two tickets to the theme park of your choice!"}
+          </p>
+
+          <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4 mb-6">
+            <p className="text-lg text-yellow-200 font-medium">
+              {kidMode
+                ? "🎁 Gigi knows — go ask her about your prize!"
+                : "🎁 Gigi has been notified about your prize!"}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="px-8 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 font-bold text-lg rounded-xl shadow-lg hover:scale-105 transition-transform"
+          >
+            {kidMode ? "AWESOME! 🎢" : "Close"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Contest goals
 const GOALS = {
   trivia: 7,
@@ -122,6 +198,7 @@ export default function Contest() {
   const [adultProgress, setAdultProgress] = useState<UserProgress | null>(null);
   const [kidProgress, setKidProgress] = useState<UserProgress | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [alreadyWonBefore, setAlreadyWonBefore] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadProgress = useCallback(async () => {
@@ -177,7 +254,7 @@ export default function Contest() {
     const alreadyWon = await checkContestWon();
 
     if (adultData.hasWon && kidData.hasWon && !alreadyWon) {
-      // Both just won! Send notification
+      // Both just won! Send notification and show celebration
       try {
         await fetch("/api/notify-win", { method: "POST" });
         await markContestWon();
@@ -185,8 +262,9 @@ export default function Contest() {
       } catch (err) {
         console.error("Failed to send win notification:", err);
       }
-    } else if (alreadyWon && adultData.hasWon && kidData.hasWon) {
-      setShowCelebration(true);
+    } else if (alreadyWon) {
+      // They won before - just show the "already won" state, not the popup
+      setAlreadyWonBefore(true);
     }
 
     setLoading(false);
@@ -196,12 +274,22 @@ export default function Contest() {
     loadProgress();
   }, [loadProgress]);
 
+  const closeCelebration = () => {
+    setShowCelebration(false);
+    setAlreadyWonBefore(true);
+  };
+
   if (loading) return null;
 
   const bothWon = adultProgress?.hasWon && kidProgress?.hasWon;
 
   return (
     <section id="contest" className="py-20 px-4 max-w-4xl mx-auto">
+      {/* Celebration Popup - only shows once when they first win */}
+      {showCelebration && (
+        <WinCelebration kidMode={kidMode} onClose={closeCelebration} />
+      )}
+
       <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
         {kidMode ? "🏆 Secret Challenge!" : "Family Challenge"}
       </h2>
@@ -211,18 +299,13 @@ export default function Contest() {
           : "Both players must complete at least one challenge path to unlock a special prize!"}
       </p>
 
-      {/* Celebration Banner */}
-      {showCelebration && (
-        <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-yellow-900/40 to-amber-900/40 border-2 border-yellow-500/50 text-center">
-          <div className="text-5xl mb-4">🎉🎢🎉</div>
-          <h3 className="text-2xl font-black text-yellow-300 mb-2">
-            {kidMode ? "YOU WON!!!" : "Congratulations!"}
-          </h3>
-          <p className="text-lg text-yellow-100">
-            {kidMode
-              ? "You and Dad did it! You've won TWO TICKETS to the theme park of your choice! Gigi knows — go ask her!"
-              : "You've both completed the challenge! You've won two tickets to the theme park of your choice. Gigi has been notified!"}
-          </p>
+      {/* Already Won Banner - shows on return visits */}
+      {alreadyWonBefore && bothWon && (
+        <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 text-center">
+          <span className="text-2xl mr-2">🏆</span>
+          <span className="text-green-300 font-bold">
+            {kidMode ? "You already won! Ask Gigi about your prize!" : "Challenge complete! Prize claimed."}
+          </span>
         </div>
       )}
 

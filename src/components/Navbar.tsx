@@ -20,22 +20,32 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Navigation blocks - horizontal scroll on mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide justify-center">
-          {/* Contest - Special highlighted block */}
+        {/* Navigation blocks - two rows on mobile */}
+        <div className="grid grid-cols-4 gap-2">
+          {/* Row 1: Contest + first 3 nav items */}
           <a
             href="#contest"
-            className="flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 text-gray-900 font-bold text-xs shadow-lg hover:scale-105 transition-transform animate-pulse"
+            className="flex flex-col items-center justify-center px-2 py-2 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 text-gray-900 font-bold text-xs shadow-lg hover:scale-105 transition-transform animate-pulse"
           >
             <span className="text-lg">🏆</span>
             <span>Win!</span>
           </a>
-
-          {navItems.map((item) => (
+          {navItems.slice(0, 3).map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br ${item.color} text-white font-bold text-xs shadow-md hover:scale-105 transition-transform`}
+              className={`flex flex-col items-center justify-center px-2 py-2 rounded-xl bg-gradient-to-br ${item.color} text-white font-bold text-xs shadow-md hover:scale-105 transition-transform`}
+            >
+              <span className="text-lg">{item.emoji}</span>
+              <span>{item.label}</span>
+            </a>
+          ))}
+          {/* Row 2: remaining nav items */}
+          {navItems.slice(3).map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center justify-center px-2 py-2 rounded-xl bg-gradient-to-br ${item.color} text-white font-bold text-xs shadow-md hover:scale-105 transition-transform`}
             >
               <span className="text-lg">{item.emoji}</span>
               <span>{item.label}</span>

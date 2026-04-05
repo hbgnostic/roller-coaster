@@ -18,15 +18,15 @@ export default function Timeline() {
 
   if (kidMode) {
     return (
-      <section id="timeline" className="py-20 px-4 max-w-5xl mx-auto">
+      <section id="timeline" className="py-20 px-4 max-w-2xl mx-auto">
         <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
           🕰️ Roller Coaster Time Machine!
         </h2>
-        <p className="text-center text-amber-300 mb-12">
+        <p className="text-center text-amber-300 mb-8">
           Travel through time and see how coasters got AWESOME!
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="space-y-4">
           {kidEntries.map((entry, i) => (
             <KidTimelineCard key={entry.year} entry={entry} index={i} />
           ))}
@@ -77,7 +77,7 @@ export default function Timeline() {
   );
 }
 
-// Fun card layout for kid mode
+// Simple stacked card for kid mode - no flipping needed, easy to read
 function KidTimelineCard({
   entry,
   index,
@@ -85,7 +85,6 @@ function KidTimelineCard({
   entry: (typeof timelineEntries)[0];
   index: number;
 }) {
-  const [flipped, setFlipped] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -113,40 +112,28 @@ function KidTimelineCard({
     <div
       ref={ref}
       className={`transition-all duration-500 ${
-        visible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      <button
-        onClick={() => setFlipped(!flipped)}
-        className={`w-full aspect-square rounded-xl p-3 text-left transition-all duration-300 transform hover:scale-105 shadow-lg ${
-          flipped
-            ? "bg-gray-900 border-2 border-amber-400"
-            : `bg-gradient-to-br ${bgColor}`
-        }`}
-      >
-        {!flipped ? (
-          // Front of card
-          <div className="h-full flex flex-col items-center justify-center text-center">
-            <span className="text-4xl mb-2">{entry.kidEmoji}</span>
-            <h3 className="text-sm font-black text-white drop-shadow-lg mb-1 leading-tight">
+      <div className={`rounded-2xl p-4 bg-gradient-to-br ${bgColor} shadow-lg`}>
+        {/* Header with emoji, title, and year */}
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-4xl">{entry.kidEmoji}</span>
+          <div>
+            <h3 className="text-lg font-black text-white drop-shadow-lg leading-tight">
               {entry.kidTitle}
             </h3>
-            <span className="text-xs font-bold text-white/80 bg-black/20 px-2 py-0.5 rounded-full">
+            <span className="text-sm font-bold text-white/80 bg-black/20 px-2 py-0.5 rounded-full inline-block mt-1">
               {entry.year}
             </span>
           </div>
-        ) : (
-          // Back of card - centered, larger text for kids learning to read
-          <div className="h-full flex flex-col items-center justify-center text-center">
-            <span className="text-3xl mb-2">{entry.kidEmoji}</span>
-            <p className="text-base text-amber-100 leading-relaxed font-medium overflow-y-auto">
-              {entry.kidDetail}
-            </p>
-            <span className="text-xs text-amber-400 mt-2">tap to flip back</span>
-          </div>
-        )}
-      </button>
+        </div>
+        {/* Description - easy to read without scrolling */}
+        <p className="text-base text-white leading-relaxed font-medium">
+          {entry.kidDetail}
+        </p>
+      </div>
     </div>
   );
 }
