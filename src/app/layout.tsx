@@ -17,6 +17,17 @@ export const metadata: Metadata = {
   title: "CoasterVerse — Your Universe of Thrills",
   description:
     "An interactive roller coaster experience with engineering timelines, a coaster builder, trivia, AI chat, collectible cards, and fun facts.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CoasterVerse",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
+  themeColor: "#dc2626",
 };
 
 export default function RootLayout({
