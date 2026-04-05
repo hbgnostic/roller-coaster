@@ -18,15 +18,15 @@ export default function Timeline() {
 
   if (kidMode) {
     return (
-      <section id="timeline" className="py-20 px-4 max-w-2xl mx-auto">
+      <section id="timeline" className="py-20 px-4 max-w-5xl mx-auto">
         <h2 className="text-4xl md:text-5xl font-black text-center mb-4 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
           🕰️ Roller Coaster Time Machine!
         </h2>
-        <p className="text-center text-amber-300 mb-8">
+        <p className="text-center text-amber-300 mb-12">
           Travel through time and see how coasters got AWESOME!
         </p>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {kidEntries.map((entry, i) => (
             <KidTimelineCard key={entry.year} entry={entry} index={i} />
           ))}
@@ -77,7 +77,7 @@ export default function Timeline() {
   );
 }
 
-// Simple stacked card for kid mode - no flipping needed, easy to read
+// Fun flip card for kid mode
 function KidTimelineCard({
   entry,
   index,
@@ -85,6 +85,7 @@ function KidTimelineCard({
   entry: (typeof timelineEntries)[0];
   index: number;
 }) {
+  const [flipped, setFlipped] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -112,28 +113,46 @@ function KidTimelineCard({
     <div
       ref={ref}
       className={`transition-all duration-500 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        visible ? "opacity-100 scale-100" : "opacity-0 scale-90"
       }`}
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      <div className={`rounded-2xl p-4 bg-gradient-to-br ${bgColor} shadow-lg`}>
-        {/* Header with emoji, title, and year */}
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-4xl">{entry.kidEmoji}</span>
-          <div>
-            <h3 className="text-lg font-black text-white drop-shadow-lg leading-tight">
+      <button
+        onClick={() => setFlipped(!flipped)}
+        className={`w-full aspect-square rounded-xl p-3 text-left transition-all duration-300 transform hover:scale-105 shadow-lg ${
+          flipped
+            ? "bg-gray-900 border-2 border-amber-400"
+            : `bg-gradient-to-br ${bgColor}`
+        }`}
+      >
+        {!flipped ? (
+          // Front of card - year centered with label
+          <div className="h-full flex flex-col items-center justify-center text-center">
+            <span className="text-4xl mb-2">{entry.kidEmoji}</span>
+            <div className="mb-2">
+              <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Year:</span>
+              <span className="block text-2xl font-black text-white drop-shadow-lg">
+                {entry.year}
+              </span>
+            </div>
+            <h3 className="text-sm font-bold text-white/90 leading-tight mb-2">
               {entry.kidTitle}
             </h3>
-            <span className="text-sm font-bold text-white/80 bg-black/20 px-2 py-0.5 rounded-full inline-block mt-1">
-              {entry.year}
+            <span className="text-xs text-white/70 bg-black/20 px-2 py-1 rounded-full">
+              👆 Tap me!
             </span>
           </div>
-        </div>
-        {/* Description - easy to read without scrolling */}
-        <p className="text-base text-white leading-relaxed font-medium">
-          {entry.kidDetail}
-        </p>
-      </div>
+        ) : (
+          // Back of card - the story
+          <div className="h-full flex flex-col items-center justify-center text-center overflow-hidden">
+            <span className="text-3xl mb-2">{entry.kidEmoji}</span>
+            <p className="text-sm text-amber-100 leading-relaxed font-medium line-clamp-5">
+              {entry.kidDetail}
+            </p>
+            <span className="text-xs text-amber-400 mt-2">👆 Tap to flip back</span>
+          </div>
+        )}
+      </button>
     </div>
   );
 }
